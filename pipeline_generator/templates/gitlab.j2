@@ -1,0 +1,66 @@
+stages:
+  - terragrunt plan
+  - terragrunt apply
+
+default:
+  image: {{ image_registry }}
+
+.terragrunt_template:
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo "$GITLAB_DEPLOY_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - eval $(ssh-agent -s)
+    - ssh-add ~/.ssh/id_rsa
+{% if extra_known_host %}
+    - ssh-keyscan -H {{ extra_known_host }} >> ~/.ssh/known_hosts
+{% endif %}
+    - ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+    - LOCATION=$(echo ${CI_JOB_NAME} | cut -d":" -f2)
+    - cd ${LOCATION}
+    - tfenv install
+
+{% for account in account_list %}
+.{{ account }}_terragrunt_plan_template:
+  stage: terragrunt plan
+  variables:
+    AWS_ACCESS_KEY_ID: "${{ account|upper }}_AWS_ACCESS_KEY_ID"
+    AWS_SECRET_ACCESS_KEY: "${{ account|upper }}_AWS_SECRET_ACCESS_KEY"
+  extends: .terragrunt_template
+  script:
+    - terragrunt plan -input=false -refresh=true
+
+.{{ account }}_terragrunt_apply_template:
+  stage: terragrunt apply
+  variables:
+    AWS_ACCESS_KEY_ID: "${{ account|upper }}_AWS_ACCESS_KEY_ID"
+    AWS_SECRET_ACCESS_KEY: "${{ account|upper }}_AWS_SECRET_ACCESS_KEY"
+  extends: .terragrunt_template
+  when: manual
+  script:
+    - terragrunt apply -input=false -refresh=false -auto-approve=true
+
+{% endfor %}
+
+{% for ci_path in ci_path_list  %}
+terragrunt-plan:{{ ci_path.path.parent }}:
+  extends: .{{ ci_path.account }}_terragrunt_plan_template
+  environment:
+    name: {{ ci_path.envirnonment|default(ci_path.account, true) }}
+  only:
+    refs:
+      - merge_requests
+    changes:
+      - {{ ci_path.path }}
+
+terragrunt-apply:{{ ci_path.path.parent }}:
+  extends: .{{ ci_path.account }}_terragrunt_apply_template
+  environment:
+    name: {{ ci_path.envirnonment|default(ci_path.account, true) }}
+  only:
+    refs:
+      - master
+    changes:
+      - {{ ci_path.path }}
+
+{% endfor %}
