@@ -1,6 +1,6 @@
 # pipeline-generator
 
-This is a Python CLI that geneartes a *.gitlab-ci.yml* in **infrastructure-live** resposioties.
+This is a Python CLI that geneartes *.gitlab-ci.yml* or *bitbucket-pipelines.yml* output  in **infrastructure-live** resposioties.
 
 
 ## Prerequisites
@@ -37,17 +37,26 @@ $ pip install -e .
 
 ## Executing the CLI
 
-After creating the virtualenv and installing the package you can run the CLI with the following command:
+After creating the virtualenv and installing the package you can run the CLI with the following commands located in the root of the infra-live repository:
 
 ```shell
-$ pipeline-generator -i "9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5"
+$ pipeline-generator -i "9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5" -p gitlab
 ```
+
+Where `-i "9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5"` is the dafault image for ci/cd pipeline and 
+`-p gitlab` generates a .gitlab-ci.yml output style
 
 If you need add a host to ~/.ssh/known_hosts file, use the `-e` option:
 ```shell
-$ pipeline-generator -i "9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5" -e gitlab.foo.com
+$ pipeline-generator -i "9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5" -p gitlab -e gitlab.foo.com
 ```
 
+The --extra-know-host option can be passed multiple times:
+```shell
+$ pipeline-generator -i "9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5" -p gitlab -e gitlab.foo.com -e gitlab.bar.com
+```
+
+**Note**: the values in the options shown above are for example.
 
 CLI help: 
 
@@ -56,12 +65,14 @@ $ pipeline-generator --help
 Usage: pipeline-generator [OPTIONS]
 
 Options:
-  -i, --image-registry TEXT   Registry for default image  [required]
-  -o, --out TEXT              Output file name
-  -e, --extra-know-host TEXT  Host that will be added to ~/.ssh/known_hosts.
-                              i.e: gitlab.com
+  -i, --image-registry TEXT       Registry for default image  [required]
+  -p, --provider [gitlab|bitbucket]
+                                  Git provider, i.e: gitlab   [required]
+  -o, --out TEXT                  Output file name
+  -e, --extra-know-host TEXT      Host that will be added to
+                                  ~/.ssh/known_hosts. i.e: gitlab.com
 
-  --help                      Show this message and exit.
+  --help                          Show this message and exit.
 ```
 
 ## Examples
@@ -69,12 +80,11 @@ Options:
 
 ```shell
 $ cd ~/repos/foo/infra/infrastructure-live-foo
-$ pipeline-generator -i "9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5" -e gitlab.foo.com 
+$ pipeline-generator -i "9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5" -e gitlab.foo.com -p gitlab
 
 stages:
   - terragrunt plan
   - terragrunt apply
-  - terragrunt destroy
 
 default:
   image: 9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5
@@ -115,16 +125,6 @@ variables:
   script:
     - terragrunt apply -input=false -refresh=false -auto-approve=true
 
-.dev_terragrunt_destroy_template:
-  stage: terragrunt destroy
-  variables:
-    AWS_ACCESS_KEY_ID: "$DEV_AWS_ACCESS_KEY_ID"
-    AWS_SECRET_ACCESS_KEY: "$DEV_AWS_SECRET_ACCESS_KEY"
-  extends: .terragrunt_template
-  when: manual
-  script:
-    - terragrunt destroy -input=false -refresh=true -auto-approve=true
-
 .prd_terragrunt_plan_template:
   stage: terragrunt plan
   variables:
@@ -145,18 +145,6 @@ variables:
   script:
     - terragrunt apply -input=false -refresh=false -auto-approve=true
 
-.prd_terragrunt_destroy_template:
-  stage: terragrunt destroy
-  variables:
-    AWS_ACCESS_KEY_ID: "$PRD_AWS_ACCESS_KEY_ID"
-    AWS_SECRET_ACCESS_KEY: "$PRD_AWS_SECRET_ACCESS_KEY"
-  extends: .terragrunt_template
-  when: manual
-  script:
-    - terragrunt destroy -input=false -refresh=true -auto-approve=true
-
-
-
 terragrunt-plan:dev/_global/route53/dev.foo.com:
   extends: .dev_terragrunt_plan_template
   only:
@@ -173,14 +161,6 @@ terragrunt-apply:dev/_global/route53/dev.foo.com:
     changes:
       - dev/_global/route53/dev.foo.com/terragrunt.hcl
 
-terragrunt-destroy:dev/_global/route53/dev.foo.com:
-  extends: .dev_terragrunt_destroy_template
-  only:
-    refs:
-      - master
-    changes:
-      - dev/_global/route53/dev.foo.com/terragrunt.hcl
-
 terragrunt-plan:dev/us-east-1/_global/vpc:
   extends: .dev_terragrunt_plan_template
   only:
@@ -191,14 +171,6 @@ terragrunt-plan:dev/us-east-1/_global/vpc:
 
 terragrunt-apply:dev/us-east-1/_global/vpc:
   extends: .dev_terragrunt_apply_template
-  only:
-    refs:
-      - master
-    changes:
-      - dev/us-east-1/_global/vpc/terragrunt.hcl
-
-terragrunt-destroy:dev/us-east-1/_global/vpc:
-  extends: .dev_terragrunt_destroy_template
   only:
     refs:
       - master
