@@ -12,9 +12,9 @@ default:
     - chmod 600 ~/.ssh/id_rsa
     - eval $(ssh-agent -s)
     - ssh-add ~/.ssh/id_rsa
-{% if extra_known_host %}
+{% for extra_known_host in extra_known_hosts %}
     - ssh-keyscan -H {{ extra_known_host }} >> ~/.ssh/known_hosts
-{% endif %}
+{% endfor %}
     - ssh-keyscan -H github.com >> ~/.ssh/known_hosts
     - LOCATION=$(echo ${CI_JOB_NAME} | cut -d":" -f2)
     - cd ${LOCATION}
