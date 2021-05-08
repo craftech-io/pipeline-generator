@@ -1,0 +1,6 @@
+.gitignore
+.git/
+.idea/
+pipeline_generator.egg-info/
+README.md
+
