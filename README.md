@@ -7,16 +7,11 @@ This is a Python CLI that geneartes *.gitlab-ci.yml* or *bitbucket-pipelines.yml
 
 * Python 3.6 or higher
 * pip
+* docker(optional)
 
 ## Install package 
 
-You can make a varitualenv:
-
-```shell
-$ virtualenv venv
-$ . venv/bin/activate
-```
-Another option can be:
+You can make a varitual environment:
 
 ```shell
 $ python3 -m venv venv
@@ -40,20 +35,25 @@ $ pip install -e .
 After creating the virtualenv and installing the package you can run the CLI with the following commands located in the root of the infra-live repository:
 
 ```shell
-$ pipeline-generator -i "9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5" -p gitlab
+$ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -p gitlab
 ```
 
-Where `-i "9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5"` is the dafault image for ci/cd pipeline and 
+Where `-i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c"` is the default image for ci/cd pipeline and 
 `-p gitlab` generates a .gitlab-ci.yml output style
 
 If you need add a host to ~/.ssh/known_hosts file, use the `-e` option:
 ```shell
-$ pipeline-generator -i "9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5" -p gitlab -e gitlab.foo.com
+$ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -p gitlab -e gitlab.foo.com
 ```
 
 The --extra-know-host option can be passed multiple times:
 ```shell
-$ pipeline-generator -i "9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5" -p gitlab -e gitlab.foo.com -e gitlab.bar.com
+$ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -p gitlab -e gitlab.foo.com -e gitlab.bar.com
+```
+
+Instead of printing the result to the screen, you can save it to a file with de `-o` or `--out` option:
+```shell
+$ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -p gitlab -e gitlab.foo.com -e gitlab.bar.com -o .gitlab-ci.yml
 ```
 
 **Note**: the values in the options shown above are for example.
@@ -75,19 +75,33 @@ Options:
   --help                          Show this message and exit.
 ```
 
+### Executing with Docker
+
+To build the docker image run the following command in the root of the repository:
+
+```shell
+$ docker build -t pipeline-generator:latest .
+```
+
+Run a temporary container to execute de CLI:
+
+```shell
+$ docker run --rm -it --name pipeline-generator --env LOCAL_USER_ID=$(id -u) -v `pwd`:`pwd` -w `pwd` pipeline-generator:latest /bin/sh
+```
+
 ## Examples
 
 
 ```shell
 $ cd ~/repos/foo/infra/infrastructure-live-foo
-$ pipeline-generator -i "9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5" -e gitlab.foo.com -p gitlab
+$ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -e gitlab.foo.com -p gitlab
 
 stages:
   - terragrunt plan
   - terragrunt apply
 
 default:
-  image: 9594.dkr.ecr.us-east-2.amazonaws.com/cirunner:tf0.13.5
+  image: craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c
 
 variables:
   PLAN_OUT_DIR: $CI_PROJECT_DIR/plan-outs
