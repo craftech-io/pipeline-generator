@@ -1,6 +1,6 @@
 # pipeline-generator
 
-This is a Python CLI that geneartes *.gitlab-ci.yml* or *bitbucket-pipelines.yml* output  in **infrastructure-live** resposioties.
+This is a Python CLI that generates *.gitlab-ci.yml* or *bitbucket-pipelines.yml* output  in **infrastructure-live** resposioties.
 
 
 ## Prerequisites
@@ -11,7 +11,7 @@ This is a Python CLI that geneartes *.gitlab-ci.yml* or *bitbucket-pipelines.yml
 
 ## Install package 
 
-You can make a varitual environment:
+You can make a virtual environment:
 
 ```shell
 $ python3 -m venv venv
@@ -87,6 +87,11 @@ Run a temporary container to execute de CLI:
 
 ```shell
 $ docker run --rm -it --name pipeline-generator --env LOCAL_USER_ID=$(id -u) -v `pwd`:`pwd` -w `pwd` pipeline-generator:latest /bin/sh
+```
+
+**Tip**: add the following command as an alias
+```shell
+alias pipeline-generator="docker run --rm -it --name pipeline-generator --env LOCAL_USER_ID=$(id -u) -v `pwd`:`pwd` -w `pwd` pipeline-generator:latest pipeline-generator"
 ```
 
 ## Examples
