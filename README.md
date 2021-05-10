@@ -56,6 +56,11 @@ Instead of printing the result to the screen, you can save it to a file with de 
 $ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -p gitlab -e gitlab.foo.com -e gitlab.bar.com -o .gitlab-ci.yml
 ```
 
+You can disable de environment(gitlab) or deployment(bitbucket) section with the flag `--disable-environments`:
+```shell
+$ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -p gitlab --disable-environments
+```
+
 **Note**: the values in the options shown above are for example.
 
 CLI help: 
@@ -71,6 +76,9 @@ Options:
   -o, --out TEXT                  Output file name
   -e, --extra-know-host TEXT      Host that will be added to
                                   ~/.ssh/known_hosts. i.e: gitlab.com
+
+  --disable-environments          Disable environment or deployment section on
+                                  templates
 
   --help                          Show this message and exit.
 ```

@@ -6,8 +6,8 @@ pipelines:
 {% for ci_path in ci_path_list  %}
       - step:
           name: terragrunt-plan-{{ ci_path.path.parent }}
-{% if ci_path.envirnonment %}
-          deployment: {{ ci_path.envirnonment }}
+{% if ci_path.environment and (not disable_environments) %}
+          deployment: {{ ci_path.environment }}
 {% endif %}
           script:
             - export AWS_ACCESS_KEY_ID="${{ ci_path.account |upper }}_AWS_ACCESS_KEY_ID"
@@ -34,8 +34,8 @@ pipelines:
 {% for ci_path in ci_path_list  %}
       - step:
           name: terragrunt-apply-{{ ci_path.path.parent }}
-{% if ci_path.envirnonment %}
-          deployment: {{ ci_path.envirnonment }}
+{% if ci_path.environment and (not disable_environments) %}
+          deployment: {{ ci_path.environment }}
 {% endif %}
           script:
             - export AWS_ACCESS_KEY_ID="${{ ci_path.account |upper }}_AWS_ACCESS_KEY_ID"
