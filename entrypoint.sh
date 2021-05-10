@@ -5,11 +5,7 @@
 
 USER_ID=${LOCAL_USER_ID:-9001}
 
-echo "Starting with UID : $USER_ID"
-
-if id craftech >/dev/null 2>&1; then
-  echo ""
-else
+if ! id craftech >/dev/null 2>&1; then
   adduser --shell /bin/sh --uid "${USER_ID}" --disabled-password --home /home/craftech craftech craftech
 fi
 export HOME=/home/craftech
