@@ -46,7 +46,7 @@ def get_ci_path_list(_path_list: List[Path]) -> List[CiPath]:
 
 def get_env_list(_ci_path_list: List[CiPath]) -> List[str]:
     """Return an ordered list with the environments"""
-    return sorted(set(ci_path.envirnonment for ci_path in _ci_path_list if ci_path.envirnonment))
+    return sorted(set(ci_path.environment for ci_path in _ci_path_list if ci_path.environment))
 
 
 def get_account_list(_ci_path_list: List[CiPath]) -> List[str]:

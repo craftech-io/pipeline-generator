@@ -45,8 +45,10 @@ default:
 {% for ci_path in ci_path_list  %}
 terragrunt-plan:{{ ci_path.path.parent }}:
   extends: .{{ ci_path.account }}_terragrunt_plan_template
+{% if not disable_environments %}
   environment:
-    name: {{ ci_path.envirnonment|default(ci_path.account, true) }}
+    name: {{ ci_path.environment|default(ci_path.account, true) }}
+{% endif %}
   only:
     refs:
       - merge_requests
@@ -55,8 +57,10 @@ terragrunt-plan:{{ ci_path.path.parent }}:
 
 terragrunt-apply:{{ ci_path.path.parent }}:
   extends: .{{ ci_path.account }}_terragrunt_apply_template
+{% if not disable_environments %}
   environment:
-    name: {{ ci_path.envirnonment|default(ci_path.account, true) }}
+    name: {{ ci_path.environment|default(ci_path.account, true) }}
+{% endif %}
   only:
     refs:
       - master
