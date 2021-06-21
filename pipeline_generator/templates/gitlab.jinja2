@@ -63,7 +63,7 @@ terragrunt-apply:{{ ci_path.path.parent }}:
 {% endif %}
   only:
     refs:
-      - master
+      - {{ branch_name }}
     changes:
       - {{ ci_path.path }}
 
