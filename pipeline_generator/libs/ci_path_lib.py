@@ -16,10 +16,10 @@ def get_template_dict() -> dict:
     """
     Search for jinja template files(j2 extension) on templates directory and returns a dictionary with
     key=filena_name (without extension) and value=template_full_path
-    :return: dictionary with the form: {'git_prvider': template_path}
+    :return: dictionary with the form: {'git_provider': template_path}
     """
     templates_path = Path(pkg_resources.resource_filename('pipeline_generator', 'templates'))
-    template_path_list = list(templates_path.glob('*.j2'))
+    template_path_list = list(templates_path.glob('*.jinja2'))
     templates_dict = {}
     for template_path in template_path_list:
         templates_dict[template_path.stem] = template_path
