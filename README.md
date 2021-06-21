@@ -39,7 +39,13 @@ $ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b
 ```
 
 Where `-i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c"` is the default image for ci/cd pipeline and 
-`-p gitlab` generates a .gitlab-ci.yml output style
+`-p gitlab` generates a .gitlab-ci.yml output style.
+
+By default, the branch name is **master**. You can change it with e `-b` or `--branch` option, e.g:
+
+```shell
+$ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -p gitlab -b main
+```
 
 If you need add a host to ~/.ssh/known_hosts file, use the `-e` option:
 ```shell
@@ -80,6 +86,7 @@ Options:
   --disable-environments          Disable environment or deployment section on
                                   templates
 
+  -b, --branch TEXT               Default branch
   --help                          Show this message and exit.
 ```
 
