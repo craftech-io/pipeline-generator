@@ -3,7 +3,7 @@ from typing import List
 
 import pkg_resources
 
-from pipeline_generator.config.constants import TERRAGRUNT_RE_LIST
+from pipeline_generator.config.constants import TERRAGRUNT_RE_LIST, IGNORE_RE_LIST
 from pipeline_generator.models.ci_path import CiPath
 
 
@@ -26,6 +26,19 @@ def get_template_dict() -> dict:
     return templates_dict
 
 
+def cleanup_path_list(_path_list: List[Path]) -> List[Path]:
+    """
+    Remove elements that matches with any regex in IGNORE_RE_LIST
+    :param _path_list: list with Path objects
+    :return: clean list with Path objects
+    """
+    clean_path_list = []
+    for _path in _path_list:
+        if not any(ignore_regex_path.match(str(_path)) for ignore_regex_path in IGNORE_RE_LIST):
+            clean_path_list.append(_path)
+    return clean_path_list
+
+
 def get_ci_path_list(_path_list: List[Path]) -> List[CiPath]:
     """
     Search for matches in _path_list with regex in TERRAGRUNT_RE_LIST. If there is a match, a CiPath object is created
@@ -35,7 +48,8 @@ def get_ci_path_list(_path_list: List[Path]) -> List[CiPath]:
     :return: List of CiPath
     """
     ci_path_list = []
-    for _path in _path_list:
+    clean_path_list = cleanup_path_list(_path_list)
+    for _path in clean_path_list:
         for regex_path in TERRAGRUNT_RE_LIST:
             m = regex_path.match(str(_path))
             if m:
