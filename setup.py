@@ -4,7 +4,7 @@ test_requirements = ['pytest>=6.2.2', ]
 
 setup(
     name='pipeline-generator',
-    version='0.6.3',
+    version='0.6.4',
     packages=find_packages(),
     include_package_data=True,
     package_data={'': ['templates/*.jinja2']},
