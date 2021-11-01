@@ -11,20 +11,22 @@ VAULT_AUTH_METHODS_DICT = get_vault_auth_method_dict()
 
 @click.command()
 @click.version_option()
-@click.option('--image-registry', '-i', 'image_registry', type=str, required=True, default=IMAGE_DEFAULT,
+@click.option('--image-registry', '-i', 'image_registry', type=str, default=IMAGE_DEFAULT,
               help='Registry for default image')
-@click.option('--provider', '-p', 'git_provider', type=click.Choice(list(GIT_PROVIDER_DICT.keys())), required=True,
-              help='Git provider, i.e: gitlab')
+@click.option('--provider', '-p', 'git_provider', type=click.Choice(list(GIT_PROVIDER_DICT.keys())), default='gitlab',
+              show_default=True, help='Git provider, i.e: gitlab')
 @click.option('--out', '-o', 'out_filename', type=str, default='', help='Output file name')
 @click.option('--extra-know-host', '-e', 'extra_known_hosts', multiple=True,
               help='Host that will be added to ~/.ssh/known_hosts. i.e: gitlab.com')
-@click.option('--branch', '-b', 'branch_name', type=str, default='master', help='Default branch name')
+@click.option('--branch', '-b', 'branch_name', type=str, default='master', show_default=True, help='Default branch name')
 @click.option('--enable-vault-envs', 'enable_vault_envs', is_flag=True,
               help='Enable vault to download environment variables')
-@click.option('--vault-role', 'vault_role', type=str, default='terraform-pipeline', help='Vault role name')
-@click.option('--vault-base-path', 'vault_base_path', type=str, default='terraform', help='Vault base path')
+@click.option('--vault-role', 'vault_role', type=str, default='terraform-pipeline', show_default=True,
+              help='Vault role name')
+@click.option('--vault-base-path', 'vault_base_path', type=str, default='terraform', show_default=True,
+              help='Vault base path')
 @click.option('--vault-auth-method', 'vault_auth_method', type=click.Choice(list(VAULT_AUTH_METHODS_DICT.keys())),
-              default='jwt')
+              default='jwt', show_default=True, help='Vault auth method')
 def generate_pipeline(image_registry, out_filename, extra_known_hosts, git_provider, branch_name, enable_vault_envs,
                       vault_role, vault_base_path, vault_auth_method):
     ci_template_rendered = render_ci_template(
