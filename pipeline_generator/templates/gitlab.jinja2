@@ -20,7 +20,7 @@ default:
     - cd ${LOCATION}
     - tfenv install
 {% if enable_vault_envs %}
-    - export VAULT_TOKEN="$(vault write -field=token auth/jwt/login role={{ vault_role }} jwt=$CI_JOB_JWT)"
+    - {{ vault_auth_method.command | replace("<vault_role>", vault_role) }}
     - vault kv get -format=json {{ vault_base_path }}/${LOCATION#*/} | jq '.data.data' | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" > .env
     - export $(cat .env | xargs)
 {% endif %} 
