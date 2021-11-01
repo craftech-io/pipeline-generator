@@ -35,67 +35,118 @@ $ pip install -e .
 After creating the virtualenv and installing the package you can run the CLI with the following commands located in the root of the infra-live repository:
 
 ```shell
-$ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -p gitlab
+$ pipeline-generator
 ```
+The default image for ci/cd pipeline is `"craftech/ci-tools:iac-tools-deaefcf14545724c6e4851c2841a9ae502f00380"` and 
+the default provider is `gitlab` (generates a .gitlab-ci.yml output style).
 
-Where `-i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c"` is the default image for ci/cd pipeline and 
-`-p gitlab` generates a .gitlab-ci.yml output style.
+To set a custom image use the `-i` flag:
+```shell
+$ pipeline-generator -i mycustomimage:v1.0.0
+```
 
 By default, the branch name is **master**. You can change it with e `-b` or `--branch` option, e.g:
 
 ```shell
-$ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -p gitlab -b main
+$ pipeline-generator -b main
 ```
 
 If you need add a host to ~/.ssh/known_hosts file, use the `-e` option:
 ```shell
-$ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -p gitlab -e gitlab.foo.com
+$ pipeline-generator  -e gitlab.foo.com
 ```
 
 The --extra-know-host option can be passed multiple times:
 ```shell
-$ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -p gitlab -e gitlab.foo.com -e gitlab.bar.com
+$ pipeline-generator  -e gitlab.foo.com -e gitlab.bar.com
 ```
 
 Instead of printing the result to the screen, you can save it to a file with de `-o` or `--out` option:
 ```shell
-$ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -p gitlab -e gitlab.foo.com -e gitlab.bar.com -o .gitlab-ci.yml
+$ pipeline-generator  -e gitlab.foo.com -e gitlab.bar.com -o .gitlab-ci.yml
 ```
 
-You can disable de environment(gitlab) or deployment(bitbucket) section with the flag `--disable-environments`:
+### Download environment variables from Vault
+
+#### Requirements
+
+Image requirements(already installed in the default image):
+* vault-cli
+* jq
+
+CI/CD environment variables:
+* **VAULT_ADDR**: Address of the Vault server expressed as a URL and port (https://www.vaultproject.io/docs/commands#vault_addr)
+
+CI/CD environment variables for `userpass` authentication method:
+* **VAULT_USERNAME** 
+* **VAULT_PASSWORD**
+
+#### How to use it
+
+You can use the flag `--enable-vault-envs` to download environment variables from a Vault server
+
 ```shell
-$ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -p gitlab --disable-environments
+$ pipeline-generator --enable-vault-envs
+```
+By default, it uses the `jwt` authentication method with a role named `terraform-pipeline` and a root path named `terraform`.
+
+JWT authentication method reference:
+https://docs.gitlab.com/ee/ci/examples/authenticating-with-hashicorp-vault/
+https://www.vaultproject.io/docs/auth/jwt#jwt-authentication
+
+To change the role name use the flag `--vault-role`:
+
+```shell
+$ pipeline-generator --enable-vault-envs --vault-role=mycustomrole
 ```
 
-**Note**: the values in the options shown above are for example.
+To change the Vault root path use the flag `--vault-base-path`:
 
-CLI help: 
-
+```shell
+$ pipeline-generator --enable-vault-envs --vault-base-path=gitlab-ci-secrets
 ```
+
+If you want to the `userpass` auth method instead `jwt`, use the flag `--vault-auth-method`:
+
+```shell
+$ pipeline-generator --enable-vault-envs --vault-auth-method=userpass
+```
+
+### CLI help
+
+``` shell
 $ pipeline-generator --help
 Usage: pipeline-generator [OPTIONS]
 
 Options:
-  -i, --image-registry TEXT       Registry for default image  [required]
-  -p, --provider [gitlab|bitbucket]
-                                  Git provider, i.e: gitlab   [required]
+  --version                       Show the version and exit.
+  -i, --image-registry TEXT       Registry for default image
+  -p, --provider [gitlab]         Git provider, i.e: gitlab  [default: gitlab]
   -o, --out TEXT                  Output file name
   -e, --extra-know-host TEXT      Host that will be added to
                                   ~/.ssh/known_hosts. i.e: gitlab.com
-
-  --disable-environments          Disable environment or deployment section on
-                                  templates
-
-  -b, --branch TEXT               Default branch
+  -b, --branch TEXT               Default branch name  [default: master]
+  --enable-vault-envs             Enable vault to download environment
+                                  variables
+  --vault-role TEXT               Vault role name  [default: terraform-
+                                  pipeline]
+  --vault-base-path TEXT          Vault base path  [default: terraform]
+  --vault-auth-method [jwt|userpass]
+                                  Vault auth method  [default: jwt]
   --help                          Show this message and exit.
 ```
 
-### Executing with Docker
+## Executing with Docker
 
 To build the docker image run the following command in the root of the repository:
 
 ```shell
 $ docker build -t pipeline-generator:latest .
+```
+
+Or use the Docker Hub image(https://hub.docker.com/r/craftech/pipeline-generator/tags)
+```shell
+docker pull craftech/pipeline-generator:latest
 ```
 
 Run a temporary container to execute de CLI:
@@ -104,24 +155,20 @@ Run a temporary container to execute de CLI:
 $ docker run --rm -it --name pipeline-generator --env LOCAL_USER_ID=$(id -u) -v `pwd`:`pwd` -w `pwd` pipeline-generator:latest /bin/sh
 ```
 
-**Tip**: add the following command as an alias
-```shell
-alias pipeline-generator="docker run --rm -it --name pipeline-generator --env LOCAL_USER_ID=$(id -u) -v `pwd`:`pwd` -w `pwd` pipeline-generator:latest pipeline-generator"
-```
 
 ## Examples
 
 
 ```shell
 $ cd ~/repos/foo/infra/infrastructure-live-foo
-$ pipeline-generator -i "craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c" -e gitlab.foo.com -p gitlab
+$ pipeline-generator -i "craftech/ci-tools:iac-tools-deaefcf14545724c6e4851c2841a9ae502f00380" -e gitlab.foo.com -p gitlab
 
 stages:
   - terragrunt plan
   - terragrunt apply
 
 default:
-  image: craftech/ci-tools:iac-tools-6c09ee7d23dadcfcfe52159984b888ab6df6012c
+  image: craftech/ci-tools:iac-tools-deaefcf14545724c6e4851c2841a9ae502f00380
 
 variables:
   PLAN_OUT_DIR: $CI_PROJECT_DIR/plan-outs

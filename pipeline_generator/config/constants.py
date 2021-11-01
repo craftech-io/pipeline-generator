@@ -9,3 +9,5 @@ TERRAGRUNT_RE_LIST = [
 IGNORE_RE_LIST = [
     re.compile(r'^([\w.-]+/)+\.terragrunt-cache/([\w.-]+/)+terragrunt\.hcl$')
 ]
+
+IMAGE_DEFAULT = 'craftech/ci-tools:iac-tools-deaefcf14545724c6e4851c2841a9ae502f00380'
