@@ -5,6 +5,10 @@ stages:
 default:
   image: {{ image_registry }}
 
+variables:
+  TERRAPLAN_PATH: .terragrunt-cache
+  TERRAPLAN_NAME: tfplan
+
 .terragrunt_template:
   before_script:
     - mkdir -p ~/.ssh
@@ -33,7 +37,7 @@ default:
     AWS_SECRET_ACCESS_KEY: "${{ account|upper }}_AWS_SECRET_ACCESS_KEY"
   extends: .terragrunt_template
   script:
-    - terragrunt plan -input=false -refresh=true
+    - terragrunt plan -input=false -refresh=true -out=$TERRAPLAN_NAME
 
 .{{ account }}_terragrunt_apply_template:
   stage: terragrunt-apply
@@ -43,33 +47,37 @@ default:
   extends: .terragrunt_template
   when: manual
   script:
-    - terragrunt apply -input=false -refresh=false -auto-approve=true
+    - terragrunt apply -input=false -refresh=false -auto-approve=true $TERRAPLAN_NAME
 
 {% endfor %}
 
 {% for ci_path in ci_path_list  %}
 terragrunt-plan:{{ ci_path.path.parent }}:
   extends: .{{ ci_path.account }}_terragrunt_plan_template
-{% if not disable_environments %}
   environment:
     name: {{ ci_path.environment|default(ci_path.account, true) }}
-{% endif %}
   only:
     refs:
       - merge_requests
+      - {{ branch_name }}
     changes:
-      - {{ ci_path.path }}
+      - {{ ci_path.path.parent }}/*
+  artifacts:
+    paths:
+      - {{ ci_path.path.parent }}/$TERRAPLAN_PATH
+    expose_as: 'tfplan'
+    expire_in: 1 day
 
 terragrunt-apply:{{ ci_path.path.parent }}:
   extends: .{{ ci_path.account }}_terragrunt_apply_template
-{% if not disable_environments %}
   environment:
     name: {{ ci_path.environment|default(ci_path.account, true) }}
-{% endif %}
   only:
     refs:
       - {{ branch_name }}
     changes:
-      - {{ ci_path.path }}
+      - {{ ci_path.path.parent }}/*
+  dependencies:
+    - terragrunt-plan:{{ ci_path.path.parent }}
 
 {% endfor %}
