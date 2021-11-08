@@ -55,7 +55,7 @@ def get_ci_path_list(_path_list: List[Path]) -> List[CiPath]:
             if m:
                 ci_path_list.append(CiPath(_path, **m.groupdict()))  # named groups as keyword arguments
                 break
-    return ci_path_list
+    return sorted(ci_path_list, key=lambda x: x.path)
 
 
 def get_env_list(_ci_path_list: List[CiPath]) -> List[str]:

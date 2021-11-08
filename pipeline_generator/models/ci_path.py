@@ -17,3 +17,6 @@ class CiPath:
     def is_region_global(self) -> bool:
         """Return true if the resource y global in the region"""
         return (not self.environment) and self.region
+
+    def __repr__(self):
+        return f"{self.path}"
