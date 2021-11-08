@@ -6,7 +6,6 @@ default:
   image: {{ image_registry }}
 
 variables:
-  TERRAPLAN_PATH: .terragrunt-cache
   TERRAPLAN_NAME: tfplan
 
 .terragrunt_template:
@@ -64,7 +63,7 @@ terragrunt-plan:{{ ci_path.path.parent }}:
       - {{ ci_path.path.parent }}/*
   artifacts:
     paths:
-      - {{ ci_path.path.parent }}/$TERRAPLAN_PATH
+      - {{ ci_path.path.parent }}/.terragrunt-cache
     expose_as: 'tfplan'
     expire_in: 1 day
 
