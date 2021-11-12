@@ -19,6 +19,8 @@ VAULT_AUTH_METHODS_DICT = get_vault_auth_method_dict()
 @click.option('--extra-know-host', '-e', 'extra_known_hosts', multiple=True,
               help='Host that will be added to ~/.ssh/known_hosts. i.e: gitlab.com')
 @click.option('--branch', '-b', 'branch_name', type=str, default='master', show_default=True, help='Default branch name')
+@click.option('--export-aws-vars', 'export_aws_vars', is_flag=True,
+              help='Export AWS variables in the script section')
 @click.option('--enable-vault-envs', 'enable_vault_envs', is_flag=True,
               help='Enable vault to download environment variables')
 @click.option('--vault-role', 'vault_role', type=str, default='terraform-pipeline', show_default=True,
@@ -27,13 +29,14 @@ VAULT_AUTH_METHODS_DICT = get_vault_auth_method_dict()
               help='Vault base path')
 @click.option('--vault-auth-method', 'vault_auth_method', type=click.Choice(list(VAULT_AUTH_METHODS_DICT.keys())),
               default='jwt', show_default=True, help='Vault auth method')
-def generate_pipeline(image_registry, out_filename, extra_known_hosts, git_provider, branch_name, enable_vault_envs,
-                      vault_role, vault_base_path, vault_auth_method):
+def generate_pipeline(image_registry, out_filename, extra_known_hosts, git_provider, branch_name, export_aws_vars,
+                      enable_vault_envs, vault_role, vault_base_path, vault_auth_method):
     ci_template_rendered = render_ci_template(
         template_path=GIT_PROVIDER_DICT.get(git_provider),
         image_registry=image_registry,
         extra_known_hosts=extra_known_hosts,
         branch_name=branch_name,
+        export_aws_vars=export_aws_vars,
         enable_vault_envs=enable_vault_envs,
         vault_role=vault_role,
         vault_base_path=vault_base_path,
