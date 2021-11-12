@@ -24,8 +24,13 @@ variables:
     - tfenv install
 {% if enable_vault_envs %}
     - {{ vault_auth_method.command | replace("<vault_role>", vault_role) }}
-    - vault kv get -format=json {{ vault_base_path }}/${LOCATION} | jq '.data.data' | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" > .env
-    - export $(cat .env | xargs)
+    - |
+      if vault kv get -format=json {{ vault_base_path }}/${LOCATION}; then
+        vault kv get -format=json {{ vault_base_path }}/${LOCATION} | jq '.data.data' | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" > .env;
+        export $(cat .env | xargs);
+      else
+        echo "WARNING: Vault path {{ vault_base_path }}/${LOCATION} does not exist";
+      fi
 {% endif %} 
 
 {% for account in account_list %}
@@ -36,6 +41,10 @@ variables:
     AWS_SECRET_ACCESS_KEY: "${{ account|upper }}_AWS_SECRET_ACCESS_KEY"
   extends: .terragrunt_template
   script:
+{% if export_aws_vars %}
+    - export AWS_ACCESS_KEY_ID=${{ account|upper }}_AWS_ACCESS_KEY_ID
+    - export AWS_SECRET_ACCESS_KEY=${{ account|upper }}_AWS_SECRET_ACCESS_KEY
+{% endif %}
     - terragrunt plan -input=false -refresh=true -out=$TERRAPLAN_NAME
 
 .{{ account }}_terragrunt_apply_template:
@@ -46,6 +55,10 @@ variables:
   extends: .terragrunt_template
   when: manual
   script:
+{% if export_aws_vars %}
+    - export AWS_ACCESS_KEY_ID=${{ account|upper }}_AWS_ACCESS_KEY_ID
+    - export AWS_SECRET_ACCESS_KEY=${{ account|upper }}_AWS_SECRET_ACCESS_KEY
+{% endif %}
     - terragrunt apply -input=false -refresh=false -auto-approve=true $TERRAPLAN_NAME
 
 {% endfor %}
