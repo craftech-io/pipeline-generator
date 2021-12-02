@@ -25,11 +25,12 @@ variables:
 {% if enable_vault_envs %}
     - {{ vault_auth_method.command | replace("<vault_role>", vault_role) }}
     - |
-      if vault kv get -format=json {{ vault_base_path }}/${LOCATION}; then
+      VAULT_CMD_TEST=$(vault kv get -format=json {{ vault_base_path }}/${LOCATION})
+      if [ $? -eq 0 ]; then
         vault kv get -format=json {{ vault_base_path }}/${LOCATION} | jq '.data.data' | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" > .env;
         export $(cat .env | xargs);
       else
-        echo "WARNING: Vault path {{ vault_base_path }}/${LOCATION} does not exist";
+        echo "WARNING(Vault): could not get variables from {{ vault_base_path }}/${LOCATION}";
       fi
 {% endif %} 
 
