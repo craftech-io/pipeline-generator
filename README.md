@@ -112,6 +112,87 @@ If you want to the `userpass` auth method instead `jwt`, use the flag `--vault-a
 $ pipeline-generator --enable-vault-envs --vault-auth-method=userpass
 ```
 
+### Avoid GitLab variable inheritance conflicts
+
+Sometimes there are variables defined at group level like `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY`. These variables 
+have more precedence than job variables, check de documentation:
+
+https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
+
+To avoid this situation you can use the `--export-aws-vars` to export `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` variables
+in the spript section. eg:
+
+```yaml
+.dev_terragrunt_plan_template:
+  stage: terragrunt-plan
+  variables:
+    AWS_ACCESS_KEY_ID: "$DEV_AWS_ACCESS_KEY_ID"
+    AWS_SECRET_ACCESS_KEY: "$DEV_AWS_SECRET_ACCESS_KEY"
+  extends: .terragrunt_template
+  script:
+    - export AWS_ACCESS_KEY_ID=$DEV_AWS_ACCESS_KEY_ID
+    - export AWS_SECRET_ACCESS_KEY=$DEV_AWS_SECRET_ACCESS_KEY
+    - terragrunt plan -input=false -refresh=true -out=$TERRAPLAN_NAME
+
+.dev_terragrunt_apply_template:
+  stage: terragrunt-apply
+  variables:
+    AWS_ACCESS_KEY_ID: "$DEV_AWS_ACCESS_KEY_ID"
+    AWS_SECRET_ACCESS_KEY: "$DEV_AWS_SECRET_ACCESS_KEY"
+  extends: .terragrunt_template
+  when: manual
+  script:
+    - export AWS_ACCESS_KEY_ID=$DEV_AWS_ACCESS_KEY_ID
+    - export AWS_SECRET_ACCESS_KEY=$DEV_AWS_SECRET_ACCESS_KEY
+    - terragrunt apply -input=false -refresh=false -auto-approve=true $TERRAPLAN_NAME
+
+.mgt_terragrunt_plan_template:
+  stage: terragrunt-plan
+  variables:
+    AWS_ACCESS_KEY_ID: "$MGT_AWS_ACCESS_KEY_ID"
+    AWS_SECRET_ACCESS_KEY: "$MGT_AWS_SECRET_ACCESS_KEY"
+  extends: .terragrunt_template
+  script:
+    - export AWS_ACCESS_KEY_ID=$MGT_AWS_ACCESS_KEY_ID
+    - export AWS_SECRET_ACCESS_KEY=$MGT_AWS_SECRET_ACCESS_KEY
+    - terragrunt plan -input=false -refresh=true -out=$TERRAPLAN_NAME
+
+.mgt_terragrunt_apply_template:
+  stage: terragrunt-apply
+  variables:
+    AWS_ACCESS_KEY_ID: "$MGT_AWS_ACCESS_KEY_ID"
+    AWS_SECRET_ACCESS_KEY: "$MGT_AWS_SECRET_ACCESS_KEY"
+  extends: .terragrunt_template
+  when: manual
+  script:
+    - export AWS_ACCESS_KEY_ID=$MGT_AWS_ACCESS_KEY_ID
+    - export AWS_SECRET_ACCESS_KEY=$MGT_AWS_SECRET_ACCESS_KEY
+    - terragrunt apply -input=false -refresh=false -auto-approve=true $TERRAPLAN_NAME
+
+.prd_terragrunt_plan_template:
+  stage: terragrunt-plan
+  variables:
+    AWS_ACCESS_KEY_ID: "$PRD_AWS_ACCESS_KEY_ID"
+    AWS_SECRET_ACCESS_KEY: "$PRD_AWS_SECRET_ACCESS_KEY"
+  extends: .terragrunt_template
+  script:
+    - export AWS_ACCESS_KEY_ID=$PRD_AWS_ACCESS_KEY_ID
+    - export AWS_SECRET_ACCESS_KEY=$PRD_AWS_SECRET_ACCESS_KEY
+    - terragrunt plan -input=false -refresh=true -out=$TERRAPLAN_NAME
+
+.prd_terragrunt_apply_template:
+  stage: terragrunt-apply
+  variables:
+    AWS_ACCESS_KEY_ID: "$PRD_AWS_ACCESS_KEY_ID"
+    AWS_SECRET_ACCESS_KEY: "$PRD_AWS_SECRET_ACCESS_KEY"
+  extends: .terragrunt_template
+  when: manual
+  script:
+    - export AWS_ACCESS_KEY_ID=$PRD_AWS_ACCESS_KEY_ID
+    - export AWS_SECRET_ACCESS_KEY=$PRD_AWS_SECRET_ACCESS_KEY
+    - terragrunt apply -input=false -refresh=false -auto-approve=true $TERRAPLAN_NAME
+```
+
 ### CLI help
 
 ``` shell
@@ -126,6 +207,7 @@ Options:
   -e, --extra-know-host TEXT      Host that will be added to
                                   ~/.ssh/known_hosts. i.e: gitlab.com
   -b, --branch TEXT               Default branch name  [default: master]
+  --export-aws-vars               Export AWS variables in the script section
   --enable-vault-envs             Enable vault to download environment
                                   variables
   --vault-role TEXT               Vault role name  [default: terraform-
