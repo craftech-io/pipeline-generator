@@ -1,6 +1,6 @@
 # pipeline-generator
 
-This is a Python CLI that generates *.gitlab-ci.yml* or *bitbucket-pipelines.yml* output  in **infrastructure-live** resposioties.
+This is a Python CLI that generates *.gitlab-ci.yml* or *bitbucket-pipelines.yml* output  in **infrastructure-live** repositories.
 
 
 ## Prerequisites
@@ -120,7 +120,7 @@ have more precedence than job variables, check de documentation:
 https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 
 To avoid this situation you can use the `--export-aws-vars` to export `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` variables
-in the spript section. eg:
+in the script section. eg:
 
 ```yaml
 .dev_terragrunt_plan_template:
