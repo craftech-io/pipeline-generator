@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pipeline-generator',
-    version='0.8.5',
+    version='0.8.6',
     packages=find_packages(),
     include_package_data=True,
     package_data={'': ['templates/*.jinja2']},
