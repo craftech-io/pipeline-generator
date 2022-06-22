@@ -37,7 +37,7 @@ After creating the virtualenv and installing the package you can run the CLI wit
 ```shell
 $ pipeline-generator
 ```
-The default image for ci/cd pipeline is `"craftech/ci-tools:iac-tools-deaefcf14545724c6e4851c2841a9ae502f00380"` and 
+The default image for ci/cd pipeline is `"craftech/ci-tools:iac-tools-85d40e6"` and 
 the default provider is `gitlab` (generates a .gitlab-ci.yml output style).
 
 To set a custom image use the `-i` flag:
@@ -243,14 +243,14 @@ $ docker run --rm -it --name pipeline-generator --env LOCAL_USER_ID=$(id -u) -v 
 
 ```shell
 $ cd ~/repos/foo/infra/infrastructure-live-foo
-$ pipeline-generator -i "craftech/ci-tools:iac-tools-deaefcf14545724c6e4851c2841a9ae502f00380" -e gitlab.foo.com -p gitlab
+$ pipeline-generator -i "craftech/ci-tools:iac-tools-85d40e6" -e gitlab.foo.com -p gitlab
 
 stages:
   - terragrunt plan
   - terragrunt apply
 
 default:
-  image: craftech/ci-tools:iac-tools-deaefcf14545724c6e4851c2841a9ae502f00380
+  image: craftech/ci-tools:iac-tools-85d40e6
 
 variables:
   PLAN_OUT_DIR: $CI_PROJECT_DIR/plan-outs
